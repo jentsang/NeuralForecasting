@@ -14,7 +14,7 @@ More information about the dataset can be found [here](https://www.codabench.org
 
 ```text
 ├── literature/         # Relevant papers and background documentation
-├── notebooks/          # Jupyter notebooks for data exploration, EDA, and model training
+├── notebooks/          # Jupyter notebooks for model training
 ├── src/                # Source code and helper functions
 ├── starting_kit/       # Initial challenge materials and raw data setup
 ├── submission/         # Final model scripts and weights prepared for Codabench
