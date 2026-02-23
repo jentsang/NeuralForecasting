@@ -21,6 +21,7 @@ More information about the dataset can be found [here](https://www.codabench.org
 ├── .gitignore          # Git ignore rules
 ├── LICENSE             # MIT License
 └── README.md           # Project documentation
+```
 
 ## Methodology & Experimental Learnings
 Achieving a highly competitive benchmark required an iterative, empirical approach to feature selection, model architecture, and training dynamics tailored specifically to biological time-series data. 
