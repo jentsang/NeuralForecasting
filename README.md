@@ -8,8 +8,19 @@ The motor neural activity forecasting dataset includes recorded neural signals f
 
 The dataset includes all 239 electrodes from Monkey A and 87 electrodes specifically from the M1 region of Monkey B.
 
-<<<<<<< HEAD
 More information about the dataset can be found [here](https://www.codabench.org/competitions/9806/#/pages-tab).
+
+## Repository Structure
+
+```text
+├── literature/         # Relevant papers and background documentation
+├── notebooks/          # Jupyter notebooks for data exploration, EDA, and model training
+├── src/                # Source code and helper functions
+├── starting_kit/       # Initial challenge materials and raw data setup
+├── submission/         # Final model scripts and weights prepared for Codabench
+├── .gitignore          # Git ignore rules
+├── LICENSE             # MIT License
+└── README.md           # Project documentation
 
 ## Methodology & Experimental Learnings
 Achieving a highly competitive benchmark required an iterative, empirical approach to feature selection, model architecture, and training dynamics tailored specifically to biological time-series data. 
@@ -31,6 +42,3 @@ Training deep recurrent networks on μECoG arrays required specialized regulariz
 * **Loss Function Strategy (Huber Loss):** While the competition is evaluated on Mean Squared Error (MSE), training the model using `SmoothL1Loss` (Huber Loss) acted as a shock absorber against random biological spikes and artifacts. This resulted in exceptionally stable training curves without violent weight updates.
 * **Gradient Clipping:** Essential for preventing the GRU from tearing itself apart during Backpropagation Through Time (BPTT). 
 * **Regularization:** Heavy Dropout (0.3) and Weight Decay (L2 regularization) were utilized to prevent the model from overfitting to the training data by Epoch 100, forcing it to learn generalized wave patterns instead.
-=======
-More information about the dataset can be found [here](https://www.codabench.org/competitions/9806/#/pages-tab).
->>>>>>> refs/remotes/origin/main
