@@ -33,9 +33,8 @@ class Model:
         else:
             raise ValueError(f'No such a monkey: {self.monkey_name}')
         
-        # Initialize TWO separate models for the ensemble
-        self.net_mse = NFBaseModel(num_channels=self.num_channels, hidden_size=2048).to(self.device)
-        self.net_huber = NFBaseModel(num_channels=self.num_channels, hidden_size=2048).to(self.device)
+        # Initialize the supercharged 2048-width architecture
+        self.net = NFBaseModel(num_channels=self.num_channels, hidden_size=2048).to(self.device)
         self.average = None
         self.std = None
 
@@ -43,26 +42,16 @@ class Model:
         if not path:
             path = os.path.dirname(__file__)
             
-        # Load MSE Weights
-        filename_mse = f"model_{self.monkey_name}_mse.pth"
-        full_path_mse = os.path.join(path, filename_mse)
-        if os.path.exists(full_path_mse):
-             self.net_mse.load_state_dict(torch.load(full_path_mse, map_location=self.device, weights_only=True))
-        else:
-            print(f"WARNING: Weights file {filename_mse} not found!")
-            
-        # Load Huber Weights
-        filename_huber = f"model_{self.monkey_name}_huber.pth"
-        full_path_huber = os.path.join(path, filename_huber)
-        if os.path.exists(full_path_huber):
-             self.net_huber.load_state_dict(torch.load(full_path_huber, map_location=self.device, weights_only=True))
-        else:
-            print(f"WARNING: Weights file {filename_huber} not found!")
-            
-        self.net_mse.eval()
-        self.net_huber.eval()
+        filename = f"model_{self.monkey_name}.pth"
+        full_path = os.path.join(path, filename)
         
-        # Load Normalization Stats (Both models use the same stats)
+        if os.path.exists(full_path):
+             self.net.load_state_dict(torch.load(full_path, map_location=self.device, weights_only=True))
+        else:
+            print(f"WARNING: Weights file {filename} not found! Model will use random initialization.")
+            
+        self.net.eval()
+        
         stats_filename = f"train_data_average_std_{self.monkey_name}.npz"
         stats_path = os.path.join(path, stats_filename)
         if os.path.exists(stats_path):
@@ -71,9 +60,13 @@ class Model:
             self.std = stats['std']
 
     def predict(self, X):
+        """
+        X shape: (Sample_size, Time_steps, Channel, Feature)
+        Returns: (Sample_size, Time_steps, Channel)
+        """
         n, t, c, f = X.shape
         
-        # 1. Normalize
+        # 1. Normalize exactly as in your training code
         if self.average is not None and self.std is not None:
             X_reshaped = X.reshape((n * t, -1))
             combine_max = self.average + 4 * self.std
@@ -95,16 +88,12 @@ class Model:
             np.repeat(x_input[:, init_steps-1:init_steps, :], future_steps, axis=1)
         ], axis=1)
         
-        # 4. Predict with BOTH models and average the results
+        # 4. Predict
         x_tensor = torch.tensor(x_masked, dtype=torch.float32).to(self.device)
         with torch.no_grad():
-            pred_mse = self.net_mse(x_tensor).cpu().numpy()
-            pred_huber = self.net_huber(x_tensor).cpu().numpy()
+            prediction_norm = self.net(x_tensor).cpu().numpy()
             
-            # The Ensemble Average
-            prediction_norm = (pred_mse + pred_huber) / 2.0
-            
-        # 5. Denormalize
+        # 5. Denormalize the output back to raw signal values
         if self.average is not None and self.std is not None:
             dummy = np.zeros((n, t, c, f))
             dummy[:, :, :, 0] = prediction_norm
